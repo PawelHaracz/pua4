@@ -30,12 +30,12 @@ public class WeatherForecastController : ControllerBase
         {
             correlationId = correlationIds.FirstOrDefault(k =>  k.Equals(Constants.CorrelationIdHeaderKey)) 
                             ?? Guid.NewGuid().ToString("N");
-            _logger.LogDebug("took correlation Id: {correlationId}", correlationId);
+            Serilog.Log.Logger.Debug("took correlation Id: {correlationId}", correlationId);
         }
         else
         {
             correlationId = Guid.NewGuid().ToString("N");
-            _logger.LogDebug("generated correlation Id: {correlationId}", correlationId);
+            Serilog.Log.Logger.Debug("generated correlation Id: {correlationId}", correlationId);
         }
         
         using (_logger.BeginScope(
@@ -62,7 +62,7 @@ public class WeatherForecastController : ControllerBase
             var range =  Enumerable.Range(1, 5).Select(index =>
                 {
                     var day = DateTime.Now.AddDays(index);
-                    _logger.LogTrace("Fetching weather for {day} - {correlationId}", day.ToString("d") ,correlationId);
+                    Serilog.Log.Logger.Verbose("Fetching weather for {day} - {correlationId}", day.ToString("d") ,correlationId);
                     var forecast = new WeatherForecast
                     {
                         CorrelationId = correlationId,
@@ -70,7 +70,7 @@ public class WeatherForecastController : ControllerBase
                         TemperatureC = Random.Shared.Next(-20, 55),
                         Summary = Summaries[Random.Shared.Next(Summaries.Length)]
                     };
-                    _logger.LogTrace("Fetched weather for {day} - {correlationId}", day.ToString("d"), correlationId);
+                    Serilog.Log.Logger.Verbose("Fetched weather for {day} - {correlationId}", day.ToString("d"), correlationId);
                     
                     return forecast;
                 })

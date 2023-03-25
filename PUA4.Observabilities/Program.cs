@@ -1,5 +1,7 @@
 using PUA4.Observabilities;
 using PUA4.Observabilities.Options;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,15 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationInsightsTelemetry();
 //builder.Services.AddServiceProfiler();
-builder.Services.AddLogging(builder =>
-{
-    builder.AddApplicationInsights( options =>
-    {
-        options.IncludeScopes = true;
-        options.FlushOnDispose = true;
-        options.TrackExceptionsAsExceptionTelemetry = false;
-    });
-});
+
 
 builder.Services.AddOptions<FailOptions>()
     .Configure<IConfiguration>(
@@ -37,6 +31,17 @@ builder.Logging.AddConsole();
 builder.Services.AddHealthChecks();
 builder.Configuration.AddEnvironmentVariables();
 
+builder.Host.UseSerilog((ctx, lc) =>
+{
+    var minimumLvl = ctx.Configuration.GetSection("Logging:Serilog:LogLevel").GetValue<LogEventLevel>("Default");
+    lc
+        .MinimumLevel.Is(minimumLvl)
+        .WriteTo.Console()
+        .WriteTo.AzureAnalytics(
+            ctx.Configuration.GetSection("AzureAnalytics").GetValue<string>("workspaceId"),
+            ctx.Configuration.GetSection("AzureAnalytics").GetValue<string>("authenticationId"),
+            "pua4", minimumLvl);
+});
 var app = builder.Build();
 app.UseMiddleware<CorrelationIdMiddleware>();
 // Configure the HTTP request pipeline.
@@ -46,7 +51,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.MapHealthChecks("/healthz");
-//app.UseHttpsRedirection();
+app.UseSerilogRequestLogging();
+
 
 app.MapControllers();
 
