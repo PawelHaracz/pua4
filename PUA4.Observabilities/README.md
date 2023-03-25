@@ -28,3 +28,8 @@ Log level supported values:
 - Warning
 - Error 
 - Critical
+
+## Endpoints:
+
+- `/healthz` - Health check endpoint
+- `/WeatherForecast` - dummy endpoint for testing logging 

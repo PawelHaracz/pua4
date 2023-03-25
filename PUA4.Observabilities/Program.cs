@@ -34,7 +34,7 @@ builder.Services.AddOptions<WorkerOptions>()
 builder.Services.AddHostedService<Worker>();
 builder.Services.AddApplicationInsightsTelemetryWorkerService();
 builder.Logging.AddConsole();
-
+builder.Services.AddHealthChecks();
 builder.Configuration.AddEnvironmentVariables();
 
 var app = builder.Build();
@@ -45,7 +45,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.MapHealthChecks("/healthz");
 //app.UseHttpsRedirection();
 
 app.MapControllers();
